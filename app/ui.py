@@ -564,37 +564,45 @@ def render_dashboard():
     
     # Chart: Distribution of genuine vs fake reviews
     if st.session_state.statistics["total_analyzed"] > 0:
-        st.markdown("<h4 style='margin-top:2rem'>Review Distribution</h4>", unsafe_allow_html=True)
-        
-        # Prepare data for the chart
-        chart_data = pd.DataFrame({
-            'category': ['Genuine', 'Fake'],
-            'count': [st.session_state.statistics["genuine_count"], 
-                      st.session_state.statistics["fake_count"]]
+        st.markdown("<h4 style='margin-top:2rem;'>Review Distribution</h4>", unsafe_allow_html=True)
+
+        df = pd.DataFrame({
+            "Category": ["Genuine", "Fake"],
+            "Count": [
+                st.session_state.statistics["genuine_count"],
+                st.session_state.statistics["fake_count"]
+            ]
         })
-        
-        # Create a horizontal bar chart
-        bar_chart = alt.Chart(chart_data).mark_bar().encode(
-            x=alt.X('count:Q', title='Number of Reviews'),
-            y=alt.Y('category:N', title=None, sort=None),
-            color=alt.Color('category:N', 
-                          scale=alt.Scale(
-                              domain=['Genuine', 'Fake'],
-                              range=['#1db954', '#ef4444']
-                          ),
-                          legend=None),
-            tooltip=['category', 'count']
-        ).properties(
-            height=100
-        ).configure_axis(
-            labelColor='#9ca3af',
-            titleColor='#9ca3af',
-            grid=False
-        ).configure_view(
-            strokeWidth=0
+
+        base_chart = alt.Chart(df)
+
+        bar = (
+            base_chart.mark_bar(size=40, cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+            .encode(
+                x=alt.X("Count:Q", title="Number of Reviews"),
+                y=alt.Y("Category:N", title="", sort=None),
+                color=alt.Color(
+                    "Category:N",
+                    scale=alt.Scale(domain=["Genuine", "Fake"], range=["#1db954", "#ef4444"]),
+                    legend=None
+                ),
+                tooltip=[alt.Tooltip("Category"), alt.Tooltip("Count")]
+            )
+            .properties(height=200)
         )
-        
-        st.altair_chart(bar_chart, use_container_width=True)
+
+        text = (
+            base_chart.mark_text(align="left", baseline="middle", dx=3)
+            .encode(text="Count:Q")
+        )
+
+        combined_chart = (
+            alt.layer(bar, text)
+            .configure_axis(labelColor="#9ca3af", titleColor="#9ca3af", grid=False)
+            .configure_view(strokeWidth=0)
+        )
+
+        st.altair_chart(combined_chart, use_container_width=True)
     
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -643,6 +651,7 @@ def render_analysis_tab():
                             explanation_text = ""
                             result_class = ""
                             badge_class = ""
+                            confidence = 0
                             
                             for line in response.iter_lines():
                                 if line:
@@ -653,6 +662,7 @@ def render_analysis_tab():
                                         if data["type"] == "header":
                                             label = data["label"]
                                             summary = data["summary"]
+                                            confidence = data["confidence"]
                                             result_class = "result-genuine" if label == "Genuine" else "result-fake"
                                             badge_class = "badge-genuine" if label == "Genuine" else "badge-fake"
                                             header_html = f"""
@@ -661,6 +671,8 @@ def render_analysis_tab():
                                                 <p><span class="badge {badge_class}">{label}</span></p>
                                                 <h4>Summary</h4>
                                                 <p>{summary}</p>
+                                                <h4>Confidence</h4>
+                                                <p>{confidence:.1f}%</p>  <!-- Display confidence -->
                                                 <h4>Detailed Explanation</h4>
                                                 <p id="explanation">Waiting for explanation...</p>
                                             </div>
@@ -689,7 +701,7 @@ def render_analysis_tab():
                                 "label": label,
                                 "summary": summary,
                                 "explanation": explanation_text,
-                                "confidence": 0.85  # Placeholder value
+                                "confidence": confidence
                             }
 
                             # Save complete result to history
@@ -700,7 +712,7 @@ def render_analysis_tab():
                                 "label": label,
                                 "summary": summary,
                                 "explanation": explanation_text,
-                                "confidence": result.get("confidence", 0.85)
+                                "confidence": confidence
                             })
                             
                             # Update statistics

@@ -60,11 +60,12 @@ async def predict_with_explanation_stream(review_req: ReviewRequest):
         outputs = model(**inputs)
         prediction = torch.argmax(outputs.logits, dim=1).item()
         label = "Fake" if prediction == 1 else "Genuine"
+        confidence = torch.softmax(outputs.logits, dim=1).max().item()
         
         summary, token_iter = generate_explanation_stream(review_req.review, label)
         
         async def event_generator():
-            header = {"type": "header", "label": label, "summary": summary}
+            header = {"type": "header", "label": label, "summary": summary, "confidence": confidence}
             yield f"data: {json.dumps(header)}\n\n"
             explanation_text = ""
             for token in token_iter:

@@ -19,6 +19,8 @@ A robust machine learning project to classify product reviews as **Fake** or **G
   - [API Server](#api-server)
   - [User Interface (Streamlit)](#user-interface-streamlit)
   - [Running the Project](#running-the-project)
+        - [Dashboard](#dashboard)
+        - [Analysis Page](#analysis-page)
   - [Troubleshooting \& Notes](#troubleshooting--notes)
   - [Acknowledgements](#acknowledgements)
 
@@ -270,6 +272,12 @@ A browser window should open with the Streamlit interface.
    ```bash
    streamlit run app/ui.py
    ```
+
+##### Dashboard
+<img title="dashboard" alt="dashboard" src="/assets/dashboard.png" />
+
+##### Analysis Page
+<img title="dashboard" alt="dashboard" src="/assets/analysis_page.png" />
 
 ---
 
