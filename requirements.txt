@@ -1,0 +1,17 @@
+# NLP & Model Libraries
+transformers
+torch
+datasets
+spacy
+nltk
+pandas
+
+# API & UI
+fastapi
+uvicorn
+streamlit
+requests
+
+# GenAI & Chain-of-Thought
+openai
+langchain
